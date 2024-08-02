@@ -1,13 +1,18 @@
-import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-native'
-import React from 'react'
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native'
+import React, { useState } from 'react'
 import { useNavigation, useRouter } from 'expo-router'
 import { useEffect } from 'react';
 import { Colors } from '@/constants/Colors'
 import { Ionicons } from '@expo/vector-icons';
+import { auth } from '../../../configs/FirebaseConfig';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 
 export default function SignUp() {
   const navigation = useNavigation();
   const router = useRouter();
+  
+  const [email, setEmail] = useState();
+  const [password, setPassword] = useState();
 
   useEffect(() => {
     navigation.setOptions({
@@ -15,8 +20,28 @@ export default function SignUp() {
     })
   }, [])
 
+  const signIn = () => {
+    if (!email || !password) {
+      Alert.alert('Please fill out all fields');
+    }
+
+    signInWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        // Signed in 
+        const user = userCredential.user;
+        console.log(user);
+        router.replace('/newoperation')
+      })
+      .catch((error) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        console.log(errorCode, errorMessage);
+        Alert.alert(errorCode);
+      });
+  }
+
   return (
-    <View style={{
+    <ScrollView style={{
       padding: 25,
       marginTop: 60,
       backgroundColor: Colors.WHITE,
@@ -50,7 +75,7 @@ export default function SignUp() {
         <Text style={{
           fontFamily: 'outfit'
         }}>Email</Text>
-        <TextInput placeholder='Enter email' style={styles.input}></TextInput>
+        <TextInput placeholder='Enter email' style={styles.input} onChangeText={(value) => setEmail(value)}></TextInput>
       </View>
 
       <View style={{
@@ -59,10 +84,10 @@ export default function SignUp() {
         <Text style={{
           fontFamily: 'outfit'
         }}>Password</Text>
-        <TextInput secureTextEntry={true} placeholder='Enter password' style={styles.input}></TextInput>
+        <TextInput secureTextEntry={true} placeholder='Enter password' style={styles.input} onChangeText={(value) => setPassword(value)}></TextInput>
       </View>
 
-      <TouchableOpacity style={styles.button}>
+      <TouchableOpacity style={styles.button} onPress={signIn}>
         <Text
           style={{
             color: Colors.WHITE,
@@ -90,7 +115,7 @@ export default function SignUp() {
           }}
         >Don't have an account? Create Account</Text>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   )
 }
 
@@ -98,7 +123,7 @@ const styles = StyleSheet.create({
   input: {
     padding: 15,
     borderWidth: 1,
-    borderRadius: 15,
+    borderRadius: 16,
     borderColor: Colors.GRAY,
     fontFamily: 'outfit'
   },

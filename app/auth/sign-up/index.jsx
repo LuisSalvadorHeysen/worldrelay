@@ -1,13 +1,21 @@
-import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-native'
-import React from 'react'
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native'
+import React, { useState } from 'react'
 import { useNavigation, useRouter } from 'expo-router'
 import { useEffect } from 'react';
 import { Colors } from '@/constants/Colors'
 import { Ionicons } from '@expo/vector-icons';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../../../configs/FirebaseConfig';
+import { enableLayoutAnimations } from 'react-native-reanimated';
 
 export default function SignIn() {
   const navigation = useNavigation();
   const router = useRouter();
+
+  const [email, setEmail] = useState();
+  const [password, setPassword] = useState();
+  const [name, setName] = useState();
+  const [lastname, setLastname] = useState();
 
   useEffect(() => {
     navigation.setOptions({
@@ -15,8 +23,29 @@ export default function SignIn() {
     })
   }, [])
 
+  const createAccount = () => {
+    if (!email || !password || !name || !lastname) {
+      Alert.alert('Please fill out all fields');
+      return;
+    }
+
+    createUserWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        // Signed up 
+        const user = userCredential.user;
+        console.log(user);
+        router.replace('/newoperation')
+      })
+      .catch((error) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        console.log(errorMessage, errorCode);
+        Alert.alert(errorCode);
+      });
+    }
+
   return (
-    <View style={{
+    <ScrollView style={{
       padding: 25,
       marginTop: 60,
       backgroundColor: Colors.WHITE,
@@ -51,7 +80,7 @@ export default function SignIn() {
         <Text style={{
           fontFamily: 'outfit'
         }}>Email</Text>
-        <TextInput placeholder='Enter email' style={styles.input}></TextInput>
+        <TextInput placeholder='Enter email' style={styles.input} onChangeText={(value) => setEmail(value)}></TextInput>
       </View>
 
       {/* Password */}
@@ -61,7 +90,7 @@ export default function SignIn() {
         <Text style={{
           fontFamily: 'outfit'
         }}>Password</Text>
-        <TextInput secureTextEntry={true} placeholder='Enter password' style={styles.input}></TextInput>
+        <TextInput secureTextEntry={true} placeholder='Enter password' style={styles.input} onChangeText={(value) => setPassword(value)}></TextInput>
       </View>
 
       {/* Name */}
@@ -71,7 +100,7 @@ export default function SignIn() {
         <Text style={{
           fontFamily: 'outfit'
         }}>Name</Text>
-        <TextInput placeholder='Enter name' style={styles.input}></TextInput>
+        <TextInput placeholder='Enter name' style={styles.input} onChangeText={(value) => setName(value)}></TextInput>
       </View>
 
       {/* LastName */}
@@ -81,10 +110,10 @@ export default function SignIn() {
         <Text style={{
           fontFamily: 'outfit'
         }}>Last name</Text>
-        <TextInput placeholder='Enter last name' style={styles.input}></TextInput>
+        <TextInput placeholder='Enter last name' style={styles.input} onChangeText={(value) => setLastname(value)}></TextInput>
       </View>
 
-      <TouchableOpacity style={styles.button}>
+      <TouchableOpacity style={styles.button} onPress={createAccount}>
         <Text
           style={{
             color: Colors.WHITE,
@@ -112,7 +141,7 @@ export default function SignIn() {
           }}
         >Already have an account? Sign in</Text>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   )
 }
 
